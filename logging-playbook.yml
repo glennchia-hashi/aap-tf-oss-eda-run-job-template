@@ -1,0 +1,27 @@
+---
+- name: Logging Playbook
+  hosts: all
+  tasks:
+    - name: Print Hello World Message
+      ansible.builtin.debug:
+        msg: "Hello, world!"
+
+    - name: Extract vault event information from ansible_eda
+      ansible.builtin.set_fact:
+        eda_payload_job_template_name: "{{ ansible_eda.event.payload.job_template_name }}"
+        eda_payload_limit: "{{ ansible_eda.event.payload.limit }}"
+        eda_payload_organization_name: "{{ ansible_eda.event.payload.organization_name }}"
+        eda_payload_template_type: "{{ ansible_eda.event.payload.template_type }}"
+        eda_payload_workflow_job_template_name: "{{ ansible_eda.event.payload.workflow_job_template_name }}"
+      when: ansible_eda is defined
+
+    - name: Display extracted vault event information
+      ansible.builtin.debug:
+        msg: |
+          ===== EDA Event Details =====
+          Job template name: {{ eda_payload_job_template_name }}
+          Payload limit: {{ eda_payload_limit }}
+          Organization name: {{ eda_payload_organization_name }}
+          Template type: {{ eda_payload_template_type }}
+          Workflow template name: {{ eda_payload_workflow_job_template_name }}
+      when: ansible_eda is defined
