@@ -1,0 +1,29 @@
+---
+- name: Listen for events on a webhook
+  hosts: all
+
+  sources:
+    - ansible.eda.webhook:
+        host: 0.0.0.0
+        port: 5000
+      filters:
+        - ansible.eda.insert_hosts_to_meta:
+            host_path: payload.limit
+
+  rules:
+    - name: Dispatch TF Job Template Action
+      condition: event.payload.template_type == "job"
+      throttle:
+        once_after: 1 minute
+        group_by_attributes:
+          - event.payload.job_template_name
+          - event.payload.limit
+          - event.payload.organization_name
+      actions:
+        - debug:
+            msg: "Executing Job Template {{ event.payload.job_template_name }}"
+        - run_job_template:
+            name: "{{ event.payload.job_template_name }}"
+            organization: "{{ event.payload.organization_name }}"
+        - debug:
+            msg: "Executed Job Template {{ event.payload.job_template_name }}"
